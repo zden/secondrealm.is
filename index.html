@@ -1,0 +1,536 @@
+<html>
+	<head>
+	<title>secondrealm.is</title>
+	<link rel="image_src" href="imgs/splash.png" / >
+	<meta name="description" content="secondrealm.is a visual experiment capturing emerging cryptoanarchy technologies that made possible to simulate a decentralized world without force of central authorities and using coercion." />
+	<meta name="title" content="secondrealm.is" />
+	<meta property="og:title" content="Visual Digital Freedom Manifesto" />
+	<meta property="og:type" content="website" />       
+	<meta property="og:image" content="data/splash.png" />      
+	<meta property="og:url" content="http://secondrealm.is" />
+	<meta charset="UTF-8">
+	<style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+	canvas { border: 0px solid #000; position:absolute; top:0;left:0; 
+	visibility: hidden; }
+	
+input[type='checkbox'] {
+    -webkit-appearance:none;
+    width:30px;
+    height:30px;
+    background:white;
+    border-radius:5px;
+    border:1px solid #000000;
+}
+input[type='checkbox']:checked {
+    background: #ff8000;
+}
+
+td.text {
+	color: #000000;
+	font-family: "Courier";
+	font-size: 20pt;
+	font-weight: normal;
+    text-decoration: none;
+}
+
+td.text2 {
+	color: #808080;
+	font-family: "Courier";
+	font-size: 16pt;
+	font-weight: normal;
+    text-decoration: none;
+}
+
+td.title {
+	color: #000080;
+	font-family: "Courier";
+	font-size: 22pt;
+	font-weight: bold;
+    text-decoration: none;
+}
+
+td.note {
+	color: #808840;
+	font-family: "Courier";
+	font-size: 10pt;
+	font-weight: normal;
+    text-decoration: none;
+}
+
+td.man {
+	color: #8080A0;
+	font-family: "Courier";
+	font-size: 9pt;
+	font-weight: bold;
+    text-decoration: none;
+}
+
+.btn{
+   border: 1px solid #000000;
+   background-color: #f0f0f0;
+   padding: 10px 20px;
+   color: #000000;
+   font-family: "Courier";
+   font-size: 20pt;
+   border-radius:7px;
+   width:250px;
+    
+    -o-transition: background-color .2s ease-in; 
+	-moz-transition: background-color .2s ease-in;
+	-webkit-transition: background-color .2s ease-in; 
+	transition: background-color .2s ease-in; 
+}
+
+.btn:hover {
+    background-color: #ffa080;    
+}
+
+.btn:active {
+    background-color: #ffa000;
+}
+
+A:link {text-decoration: none; color: #403020 }
+A:visited {text-decoration: none; color: #403020}
+A:active {text-decoration: none; color: #403020}
+A:hover {text-decoration: none; color: #000080}
+
+    </style>
+    
+<!-- vertex shader -->
+<script id="2d-vertex-shader-flat" type="x-shader/x-vertex">
+attribute vec2 a_position;
+attribute vec4 a_color;
+varying vec4 vColor;
+uniform vec2 u_resolution;
+
+void main() {
+	vColor = a_color;
+   vec2 zeroToOne = a_position / u_resolution;
+   vec2 zeroToTwo = zeroToOne * 2.0;
+   vec2 clipSpace = zeroToTwo - 1.0;
+   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+}
+</script>
+<!-- fragment shader -->
+<script id="2d-fragment-shader-flat" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 u_color;
+varying vec4 vColor;
+
+void main() {
+	gl_FragColor = vColor;
+}
+</script>
+<script id="2d-vertex-shader-txt" type="x-shader/x-vertex">
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+
+void main() {
+   vec2 zeroToOne = a_position / u_resolution;
+   vec2 zeroToTwo = zeroToOne * 2.0;
+   vec2 clipSpace = zeroToTwo - 1.0;
+   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+   v_texCoord = a_texCoord;
+}
+</script>
+<!-- fragment shader -->
+<script id="2d-fragment-shader-txt" type="x-shader/x-fragment">
+precision mediump float;
+uniform sampler2D u_image;
+uniform vec4 t_alpha;
+varying vec2 v_texCoord;
+
+void main() {
+   gl_FragColor = texture2D(u_image, v_texCoord)*t_alpha;
+}
+</script>
+	</head>
+
+  <body onload="javascript:demo_loaded();" id="demo">
+	<div id="LoadDiv" style="display: block; position:fixed; width:100%; height: 100%; z-index:2; left: 0; top: 0; visibility: visible"><canvas id="loader" width="64" height="64" style="position:center;Vertical-align: middle;"></canvas>
+
+		<script>
+
+	      window.requestAnimFrame = (function(callback) {
+	        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+	        function(callback) {
+	          window.setTimeout(callback, 1000 / 60);
+	        };
+	      })();
+
+		var loader_canvas = document.getElementById('loader');
+		var loader_context = loader_canvas.getContext('2d');
+		var loader_end = 0;
+		
+		loader_canvas.style.left = (window.innerWidth/2-32)+"px";
+		
+		loader_canvas.style.visibility = "visible";
+		
+		function loader_animate(loader_canvas, loader_context)
+		{
+			loader_context.setTransform(1, 0, 0, 1, 0, 0);
+			loader_context.beginPath();
+			loader_context.rect(0, 0, loader_canvas.width, loader_canvas.height);
+			loader_context.fillStyle = "white";
+			loader_context.globalAlpha = 0.5;
+			loader_context.fill();
+
+			ang = (new Date()).getTime()/242;
+			for (a = 0; a < 32; a++)
+			{
+				xs = 32+Math.cos(ang+a*0.2)*8;
+				ys = 32+Math.sin(ang+a*0.2)*8;
+				xe = 32+Math.sin(ang+a*0.2)*16;
+				ye = 32+Math.cos(ang+a*0.2)*16;
+				loader_context.beginPath();
+				loader_context.moveTo(xs, ys);
+				loader_context.lineTo(xe, ye);
+				loader_context.lineWidth = 2;
+				loader_context.strokeStyle = "black";
+				loader_context.globalAlpha = 1-a/32;
+				loader_context.stroke();
+			}
+
+			if (!loader_end)
+				requestAnimFrame(function() { loader_animate(loader_canvas, loader_context); });
+		}
+		
+		loader_animate(loader_canvas, loader_context);
+
+		</script>
+	</div>
+	<div id="StartDiv" style="display: block; position: fixed; width:100%; height: 100%; z-index:2; left: 0; top: 0; visibility: hidden">
+	<center>
+	<table width=260>
+	<tr><td>&nbsp;</td></tr>
+	<tr><td class=text2 align=center>Satori & Nethemba</td></tr>
+	<tr><td class=text2 align=center>presents web demo</td></tr>
+	<tr><td class=text2 align=center>for NVScene 2014</td></tr>
+	<tr><td>&nbsp;</td></tr>
+	<tr><td class=title align=center>secondrealm.is</td></tr>
+	<tr><td align=center class=man>Visual Digital Freedom Manifesto</td></tr>
+	<tr><td>&nbsp;</td></tr>
+	<tr><td align=left><input class="btn" onclick="javascript:run_demo_button(0);" type="button" value="Play 1280x720"/></td></tr>
+	<tr><td align=left><input class="btn" onclick="javascript:run_demo_button(1);" type="button" value="Play 800x450"/></td></tr>
+	<tr><td>&nbsp;</td></tr>
+	<tr><td align=left>
+	<table><tr><td><input id="hidet" name="hidet" type="checkbox" checked></td><td class=text>Hi-detail</td></tr></table>
+	</td></tr>
+	<tr><td align=left>
+	<table><tr><td><input id="webgl" name="webgl" type="checkbox"></td><td class=text>WebGL</td></tr></table>
+	</td></tr>
+	<tr><td align=left>
+	<table><tr><td><input id="fullscr" name="fullscr" type="checkbox"></td><td class=text>Fullscreen</td></tr></table>
+	<tr><td>&nbsp;</td></tr>
+	<tr><td class=note>On mobile devices or older computers, please uncheck hi-detail and use a smaller window.<br>On Android systems and desktop computers, please enable WebGL that is significantly faster.<br>Please note in Safari you have to enable WebGL manually. Implementation of full-screen varies across browsers. Visuals are slightly different in HTML5 Canvas and WebGL mode.</tr></td>
+	<tr><td>&nbsp;</td></tr>
+	<tr><td class=text2 align=left>( <a href="manifesto.html">read manifesto</a> )</td></tr>
+	<tr><td>&nbsp;</td></tr>
+	<tr><td class=note>For a recent version, please visit <a href="http://secondrealm.is">http://secondrealm.is</a></td></tr>
+	<tr><td>&nbsp;</td></tr>
+	</td></tr>
+	</table>
+	</center>
+	</div>
+    
+    <canvas id="demoCanvas" width="1280" height="720" style="position:center;Vertical-align: middle;"></canvas>
+	<script type="text/javascript" src="webgl-utils.js"></script>
+	<script type="text/javascript" src="webgl.js"></script>
+	<script type="text/javascript" src="gfxutil.js"></script>
+	<script type="text/javascript" src="demoutil.js"></script>
+	<script type="text/javascript" src="network.js"></script>
+	<script type="text/javascript" src="3dengine.js"></script>
+	<script type="text/javascript" src="vecmap.js"></script>
+	<script type="text/javascript" src="3dobjects.js"></script>
+	<script type="text/javascript" src="world.js"></script>
+	<script type="text/javascript" src="effects.js"></script>
+	<script type="text/javascript" src="faders.js"></script>
+
+	<script type="text/javascript" src="miscdata.js"></script>
+	
+    <script>
+	var audio = 0, audio_loaded = 0;
+	var time_start = -1, run_demo = 0, full_scr = 0;
+	var restarted = 0;
+
+// ---------------------------------------------------------------------------------
+
+	function demo_loaded()
+	{
+		if (audio_loaded && imgs_used == imgs_loaded)
+		{
+			loader_end = 1;
+			loader_canvas.style.visibility = "hidden";
+			var sdiv = document.getElementById('StartDiv');
+			var ldiv =  document.getElementById('LoadDiv');
+			ldiv.style.visibility = "hidden";
+			loader_canvas.style.visinility
+			sdiv.style.visibility = "visible";
+		}
+		else
+		{
+			window.setTimeout(demo_loaded, 250);
+		}
+	}
+
+	var win_res_wid = 1280, win_res_hei = 720;
+
+	function window_reallign()
+	{
+		win_wid = window.innerWidth;
+		win_hei = window.innerHeight;
+
+		canvas.style.width = win_res_wid+"px";
+		canvas.style.height = win_res_hei+"px";
+
+		canvas.style.top = (win_hei - win_res_hei)/2 + "px";
+		canvas.style.left = (win_wid - win_res_wid)/2 + "px";
+	}
+
+	function init_demo()
+	{
+		canvas = document.getElementById('demoCanvas');
+		if (document.getElementById("webgl").checked)
+		{
+			gl = getWebGLContext(canvas, { antialias: true, premultipliedAlpha: false });
+			if (gl) web_gl = 1;
+		}
+		if (!web_gl)
+			context = canvas.getContext('2d');
+		else
+			webgl_init();
+		if (document.getElementById("hidet").checked)
+			hi_det = 1;
+		if (document.getElementById("fullscr").checked)
+			full_scr = 1;
+	}
+
+	var div_start_y = 0;
+	function animate_menu_out_and_run()
+	{
+		start_demo();
+		return;
+		var sdiv = document.getElementById('StartDiv');
+		
+		div_start_y -= 16;
+		sdiv.style.top = div_start_y+"px";
+
+		if (div_start_y > -512)
+			window.setTimeout(animate_menu_out_and_run, 1000 / 60);
+		else
+		{
+			sdiv.style.visibility = "hidden";
+			start_demo();
+		}
+	}
+	
+	function animate_menu_in()
+	{
+		document.body.style.background = rgbColor(255,255,255);
+		var sdiv = document.getElementById('StartDiv');
+		sdiv.style.visibility = "visible";
+		
+		div_start_y += 16;
+		sdiv.style.top = div_start_y+"px";
+
+		if (div_start_y < 16)
+			window.setTimeout(animate_menu_in, 1000 / 60);
+	}
+	
+	function start_demo()
+	{
+		var sdiv = document.getElementById('StartDiv');
+		sdiv.style.visibility = "hidden";
+	
+		canvas.style.visibility = "visible";
+		window_reallign();
+		if (full_scr)
+		{
+			var elem = document.body;
+			fullscreen_enable(elem);
+		}
+		gfxlib_init();
+		effects_init();
+
+		if (!restarted)
+		{
+			audio = document.getElementsByTagName("audio")[0];
+			audio.load();
+			audio.loop = false;
+			audio.play();
+		}
+		else
+		{
+			demo_reset();
+
+			time_start = (new Date()).getTime();
+			audio.currentTime = 0;
+			demo_paused = 0;
+
+			audio.play();
+			audio.volume = 1;
+		}
+		
+		timeline_rewind(timeline_data);
+		timeline_fader_rewind(timeline_fader_data);
+		timeline_sync_rewind(timeline_sync_data);
+
+		run_demo = 1;	
+	}
+
+	function run_demo_button(ver)
+	{
+		init_demo();
+
+		win_wid = window.innerWidth;
+		win_hei = window.innerHeight;
+
+		win_res_wid = 1280; win_res_hei = 720;
+	
+		if (ver == 1)
+		{
+			win_res_wid = 800;
+			win_res_hei = 450;
+		}
+
+		if (full_scr)
+		{
+			win_res_wid = win_wid;
+			win_res_hei = win_res_wid / 1.777777;
+		}
+
+		animate_menu_out_and_run();
+	}
+
+	function fullscreen_enable(element)
+	{
+    	var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+	    if (requestMethod) {
+	        requestMethod.call(element);
+	    }
+	    else
+	    	if (typeof window.ActiveXObject !== "undefined")
+	    	{
+		        var wscript = new ActiveXObject("WScript.Shell");
+		        if (wscript !== null) {
+		            wscript.SendKeys("{F11}");
+		        }
+			}			
+	}
+
+	function window_resize()
+	{
+			win_wid = window.innerWidth;
+			win_hei = window.innerHeight;
+	}
+
+	function audio_time(track)
+	{
+		var currTime = Math.floor(track.currentTime).toString(); 
+		var duration = Math.floor(track.duration).toString();
+	
+		if (!isNaN(duration))
+		{
+			if (time_start == -1 && run_demo)
+			{
+				var sdiv = document.getElementById('StartDiv')
+				sdiv.style.visibility = "hidden";
+				time_start = (new Date()).getTime();
+				audio.removeEventListener('canplaythrough', audio_time, false);
+				demo_frame(canvas, context);
+			}
+		}
+	}
+
+var addEvent = function(elem, type, eventHandle)
+{
+    if (elem == null || elem == undefined) return;
+    if ( elem.addEventListener ) {
+        elem.addEventListener( type, eventHandle, false );
+    } else if ( elem.attachEvent ) {
+        elem.attachEvent( "on" + type, eventHandle );
+    } else {
+        elem["on"+type]=eventHandle;
+    }
+};
+
+addEvent(window, "resize", window_reallign);
+
+var demo_paused = 0;
+var demo_paused_time;
+var audio_current_time;
+
+demobody = document.getElementById("demo");
+demobody.addEventListener('keydown', function (e)
+{
+	if (run_demo)
+	{
+		switch (e.keyCode)
+		{
+			case 27:
+				run_demo = 0;
+				restarted = 1;
+				demo_paused = 1;
+				audio.volume = 0;
+				audio.pause();
+				canvas.style.visibility = "hidden";
+				animate_menu_in();
+				break;
+			case 32:
+			// space as pause is unfinished. I guess audio.currentTime does not work everywhere..
+				break;
+
+				if (demo_paused == 0)
+				{
+					demo_paused = 1;
+					audio_current_time = audio.currentTime;
+					audio.pause();
+					demo_paused_time = (new Date()).getTime();
+					audio.volume = 0;
+				}
+				else
+				{
+					demo_paused = 0;
+					audio.currentTime = audio_current_time;
+					audio.play();
+					//time_start += ((new Date()).getTime() - demo_paused_time);
+					audio.volume = 1;
+				}
+				break;				
+		}
+	}
+
+}, false);
+
+// ----------------------------------------------------------
+
+	
+// ----------------------------------------------------------
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	canvas = document.getElementById('demoCanvas');
+
+	var gl;
+
+// ========================================================================
+// ----------------------------------------------------------
+    </script>
+	<audio id="audio" src="zden.mp3" preload="true" ontimeupdate='audio_time(this);'></audio>
+	<script>
+		audio = document.getElementsByTagName("audio")[0];
+		audio.load();
+		audio.loop = false;
+		audio.addEventListener('canplaythrough', function func() { audio_loaded = 1; }, false);
+		audio.volume = 1;
+		//if (navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i)) 
+		audio_loaded = 1; // I force audio preload flag because audio-ready callback does not work on ios so it could create more compatibility issues..
+	</script>
+  </body>
+</html>
